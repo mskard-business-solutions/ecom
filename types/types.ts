@@ -1,5 +1,11 @@
-import { AssetType, VariantsValues } from "@prisma/client";
 import { z } from "zod";
+
+// Enums (matching Drizzle schema)
+export const AssetTypeEnum = ["IMAGE", "VIDEO"] as const;
+export const VariantsValuesEnum = ["SIZE_36", "SIZE_38", "SIZE_40", "SIZE_42", "SIZE_44", "SIZE_46"] as const;
+
+export type AssetType = (typeof AssetTypeEnum)[number];
+export type VariantsValues = (typeof VariantsValuesEnum)[number];
 export const product = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
@@ -39,16 +45,12 @@ export const varient = z.object({
   assets: z.array(
     z.object({
       url: z.string().url("Invalid asset URL"),
-      type: z.nativeEnum(AssetType, {
-        errorMap: () => ({ message: "Invalid asset type" }),
-      }),
+      type: z.enum(["IMAGE", "VIDEO"]),
     })
   ),
   sizes: z.array(
     z.object({
-      size: z.nativeEnum(VariantsValues, {
-        errorMap: () => ({ message: "Invalid size value" }),
-      }),
+      size: z.enum(["SIZE_36", "SIZE_38", "SIZE_40", "SIZE_42", "SIZE_44", "SIZE_46"]),
       stock: z.number().int().min(0, "Stock must be a non-negative integer"),
     })
   ),

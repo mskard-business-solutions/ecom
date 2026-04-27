@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Credentials from "next-auth/providers/credentials";
 import { LoginSchema } from "./types/types";
-import { prisma } from "./lib/prisma-client";
-import bcryptjs from "bcryptjs";
 import { AuthError } from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 
@@ -35,37 +33,39 @@ export default {
 
         console.log("Validation Passed: ✅", data);
 
-        const user = await prisma.user.findUnique({
-          where: { mobile_no: data.mobileNumber },
-        });
+        try {
+          // Call backend API for login
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          const response = await fetch(`${backendUrl}/api/auth/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              mobileNumber: data.mobileNumber,
+              password: data.password,
+            }),
+          });
 
-        console.log("🔍 User Found:", user);
+          if (!response.ok) {
+            const error = await response.json();
+            console.error("❌ Backend Login Error:", error);
+            throw new Error(error.error || "Invalid credentials") as AuthError;
+          }
 
-        if (!user) {
-          console.error("❌ User Not Found");
-          throw new Error("Invalid credentials or user not found") as AuthError;
+          const result = await response.json();
+          console.log("✅ Authentication Successful");
+          
+          return {
+            id: result.user.id,
+            name: result.user.name,
+            email: result.user.mobileNumber,
+            mobileNumber: result.user.mobileNumber,
+          };
+        } catch (error: any) {
+          console.error("❌ Auth Error:", error.message);
+          throw new Error(error.message) as AuthError;
         }
-
-        if (!user.password) {
-          console.error("❌ User Signed Up with Social Media");
-          throw new Error("User Signed Up with Social Media") as AuthError;
-        }
-
-        const isPasswordValid = await bcryptjs.compare(
-          data.password,
-          user.password
-        );
-        console.log("🔐 Password Check:", isPasswordValid);
-
-        if (!isPasswordValid) {
-          console.log("❌ Invalid Password");
-          throw new Error(
-            "Invalid credentials or user not found."
-          ) as AuthError;
-        }
-
-        console.log("✅ Authentication Successful");
-        return user;
       },
     }),
   ],
