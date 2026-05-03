@@ -24,7 +24,7 @@ export default function RootLayout({
     <SessionProvider>
       <QueryProvider>
       <html lang="en">
-        <body className={inter.className}>
+        <body className={inter.className} suppressHydrationWarning>
           <CartProvider>
             <Toaster />
             {children}

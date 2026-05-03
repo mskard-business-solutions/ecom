@@ -35,7 +35,7 @@ export default {
 
         try {
           // Call backend API for login
-          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
           const response = await fetch(`${backendUrl}/api/auth/login`, {
             method: "POST",
             headers: {
@@ -61,6 +61,7 @@ export default {
             name: result.user.name,
             email: result.user.mobileNumber,
             mobileNumber: result.user.mobileNumber,
+            role: result.user.role,
           };
         } catch (error: any) {
           console.error("❌ Auth Error:", error.message);

@@ -62,7 +62,9 @@ export default async function middleware(req: NextRequest) {
     console.log(session.user);
     if (session.user?.role !== "ADMIN") {
       console.log("User is not an admin. Redirecting to home.");
-      return NextResponse.redirect(new URL("/", req.url));
+      const role = session?.user?.role || "no_role";
+      const hasUser = !!session?.user;
+      return NextResponse.redirect(new URL(`/?error=role_mismatch&role=${role}&user=${hasUser}`, req.url));
     }
   }
 
