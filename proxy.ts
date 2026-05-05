@@ -15,11 +15,15 @@ const authRoutes = [
 
 const { auth } = NextAuth(authConfig);
 
-export default async function middleware(req: NextRequest) {
+/**
+ * Next.js 16 Proxy Function
+ * Replaces the deprecated middleware convention.
+ */
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const session = (await auth()) as any;
 
-  console.log("Middleware triggered for:", pathname);
+  console.log("Proxy triggered for:", pathname);
   console.log("User session:", session ? "Authenticated" : "Not Authenticated");
 
   if (pathname.startsWith("/backend")) {
@@ -40,8 +44,9 @@ export default async function middleware(req: NextRequest) {
 
     console.log("Rewriting backend request to:", url.toString());
 
-    const token = req.cookies.get(cookieName)?.value;
-    console.log("Token found:", token ? "Yes" : "No");
+    // Use the backend token stored in the session
+    const token = session?.accessToken;
+    console.log("Backend Token found in session:", token ? "Yes" : "No");
 
     const requestHeaders = new Headers(req.headers);
     if (token) {
@@ -92,7 +97,7 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Ensure middleware runs on relevant routes
+// Ensure proxy runs on relevant routes
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",

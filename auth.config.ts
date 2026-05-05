@@ -62,6 +62,7 @@ export default {
             email: result.user.mobileNumber,
             mobileNumber: result.user.mobileNumber,
             role: result.user.role,
+            accessToken: result.token, // Store the backend's JWT
           };
         } catch (error: any) {
           console.error("❌ Auth Error:", error.message);
@@ -78,21 +79,19 @@ export default {
   callbacks: {
     jwt({ token, user }: any) {
       console.log("🔄 Generating JWT...");
-      console.log("🔹 Token Data:", token)
-      console.log("🔹 User Data:", user);
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.picture = user.image;
         token.mobile_no = user.mobile_no;
-        token.role = user.role; // Store user role
+        token.role = user.role;
+        token.accessToken = user.accessToken; // Persist backend token
       }
       return token;
     },
 
     session({ session, token }: any) {
       console.log("🔄 Creating Session...");
-      console.log("🔹 Token Data:", token);
 
       if (session.user) {
         session.user.id = token.id;
@@ -100,6 +99,7 @@ export default {
         session.user.image = token.picture;
         session.user.mobile_no = token.mobile_no;
         session.user.role = token.role as "admin" | "user";
+        session.accessToken = token.accessToken; // Make it available to proxy.ts
       }
       console.log("Session Created ✅", session);
 
